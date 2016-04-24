@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on ljy2010a&#39;s Blog</title>
+    <link>http://ljy2010a.github.io/post/</link>
+    <description>Recent content in Posts on ljy2010a&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Sat, 16 Apr 2016 22:34:35 +0800</lastBuildDate>
+    <atom:link href="http://ljy2010a.github.io/post/feed/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>nginx rewrite</title>
+      <link>http://ljy2010a.github.io/post/nginx-rewrite/</link>
+      <pubDate>Sat, 16 Apr 2016 22:34:35 +0800</pubDate>
+      
+      <guid>http://ljy2010a.github.io/post/nginx-rewrite/</guid>
+      <description>
+
+&lt;p&gt;工作中需要对nginx临时支持客户端的需求,记录下nginx rewite的分析&lt;/p&gt;
+
+&lt;h3 id=&#34;rewite:9b33b1614e17cb54f8bc071bbc48f67a&#34;&gt;rewite&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;在server块下，会优先执行rewrite部分，然后才会去匹配location块&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;server中的rewrite break和last没什么区别，都会去匹配location，所以没必要用last再发起新的请求，可以留空&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;rewrite时修改参数:9b33b1614e17cb54f8bc071bbc48f67a&#34;&gt;rewrite时修改参数&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;location ~ /somefolder/mypage.aspx {
+    if ($args ~* &amp;quot;^myid=(\d+)&amp;amp;tab=overview&amp;quot;) {
+        set $mid $1;
+        set $args &#39;&#39;;
+        rewrite ^.*$ /folder/$mid/overview permanent;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;location中的rewirte:9b33b1614e17cb54f8bc071bbc48f67a&#34;&gt;location中的rewirte：&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;不写last和break : 那么流程就是依次执行rewrite&lt;/li&gt;
+&lt;li&gt;rewrite break : url重写后，直接使用当前资源，不再执行location里余下的语句，完成本次请求，地址栏url不变&lt;/li&gt;
+&lt;li&gt;rewrite last : url重写后，马上发起一个新的请求，再次进入server块，重试location匹配，超过10次匹配不到报500错误，地址栏url不变&lt;/li&gt;
+&lt;li&gt;rewrite redirect : 返回302临时重定向，地址栏显示重定向后的url，爬虫不会更新url（因为是临时）&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;rewrite permanent : 返回301永久重定向, 地址栏显示重定向后的url，爬虫更新url&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;使用last会对server标签重新发起请求&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;如果location中rewrite后是对静态资源的请求，不需要再进行其他匹配，一般要使用break或不写，直接使用当前location中的数据源，完成本次请求,&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;如果location中rewrite后，还需要进行其他处理，如动态fastcgi请求(.php,.jsp)等，要用last继续发起新的请求(根的location使用last比较好, 因为如果有.php等fastcgi请求还要继续处理)&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;使用alias指定源：必须使用last&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;if语句主要用来判断一些在rewrite语句中无法直接匹配的条件,比如检测文件存在与否,http header,cookie等&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;location匹配规则及优先级:9b33b1614e17cb54f8bc071bbc48f67a&#34;&gt;location匹配规则及优先级&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;= 严格匹配这个查询。如果找到，停止搜索。&lt;/li&gt;
+&lt;li&gt;^~ 匹配路径的前缀，如果找到，停止搜索。&lt;/li&gt;
+&lt;li&gt;~ 为区分大小写的正则匹配&lt;/li&gt;
+&lt;li&gt;~* 为不区分大小写匹配
+优先级： =, ^~, ~/~*, 无&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;break语句:9b33b1614e17cb54f8bc071bbc48f67a&#34;&gt;break语句&lt;/h3&gt;
+
+&lt;p&gt;放在server块rewrite语句前面
+如果是直接请求某个真实存在的文件,则用break语句停止rewrite检查&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;if (-f $request_filename) {
+break;
+}
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>million-connections-chat-server</title>
+      <link>http://ljy2010a.github.io/post/million-connections/</link>
+      <pubDate>Sat, 19 Mar 2016 22:51:42 +0800</pubDate>
+      
+      <guid>http://ljy2010a.github.io/post/million-connections/</guid>
+      <description>
+
+&lt;p&gt;工作中涉及到消息服务器,需要支持web,ios,android,然后打算选用websocket或socketio.&lt;/p&gt;
+
+&lt;h3 id=&#34;消息推送服务:b31d05767482ad91021c08ffa39b4980&#34;&gt;消息推送服务&lt;/h3&gt;
+
+&lt;p&gt;关于消息推送服务,其实我我一开始是反对自己写的,但是想到能造轮子,想想还是有点小激动.
+所以,和同事讨论了下实现方案. 由于直接使用开源消息队列,开发量不算大,效果也很稳定.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;前期基于可靠,高效的消息队列做支撑.如nsq,kafka&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;自己实现comet组件,支持tcp,http,websocket协议.&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;comet 向消息队列发布订阅消息&lt;/li&gt;
+&lt;li&gt;使用HA根据房间号做负载均衡&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&#34;开发设计出现的问题:b31d05767482ad91021c08ffa39b4980&#34;&gt;开发设计出现的问题&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;组件的结构和关系&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Comet 提供连接服务,处理客户端连接请求.&lt;/li&gt;
+&lt;li&gt;Master 提供中心管理服务,提供http操作api.(无状态,可横向扩展) 如对Comet的管理,认证,消息全局广播,踢人&lt;/li&gt;
+&lt;li&gt;MQ 提供消息发布,订阅,储存.&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;连接的分配问题&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;从发送效率看,一个房间的连接全放在同一个服务器最好.这样不会造成队列的压力太大,但存在情况多个房间连接太多,导致消息量太多,不利于消息的快速发送.但这种情况不常出现,能做应急处理.&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;消息协议的自定义&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;由于主要做web,移动端的消息服务,同时选用websocket,暂时选用json.(个人还是偏向protobuf)&lt;/li&gt;
+&lt;li&gt;控制消息的长度大小&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;单机百万连接数:b31d05767482ad91021c08ffa39b4980&#34;&gt;单机百万连接数&lt;/h3&gt;
+
+&lt;p&gt;就现在的硬件和软件水平单机支持1000K的连接,已经是很普通的事情了.但测试中还是需要对服务器进行参数的调优.&lt;/p&gt;
+
+&lt;h4 id=&#34;最大文件描述符:b31d05767482ad91021c08ffa39b4980&#34;&gt;最大文件描述符&lt;/h4&gt;
+
+&lt;p&gt;Linux内核本身有文件描述符最大值的限制,为了防止出现 open too many files 需要把最大文件描述符提高&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;系统最大文件描述符数: &lt;code&gt;/proc/sys/fs/file-max&lt;/code&gt;
+
+&lt;ul&gt;
+&lt;li&gt;临时: &lt;code&gt;echo 1000000 &amp;gt; /proc/sys/fs/file-max&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;永久:修改/etc/sysctl.conf文件，增加 &lt;code&gt;fs.file-max = 1000000&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;进程最大打开文件描述符数: &lt;code&gt;ulimit -n&lt;/code&gt; 查看当前设置&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;临时:使用&lt;code&gt;ulimit -n 1000000&lt;/code&gt;进行临时性设置&lt;/li&gt;
+&lt;li&gt;永久:修改/etc/security/limits.conf文件&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;下面中的 hard limit不能大于 &lt;code&gt;/proc/sys/fs/nr_open&lt;/code&gt;，所以有时需要修改nr_open的值。执行&lt;code&gt;echo 2000000 &amp;gt; /proc/sys/fs/nr_open&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;*         hard    nofile      1000000
+*         soft    nofile      1000000
+root      hard    nofile      1000000
+root      soft    nofile      1000000       
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;使用golang做服务器,对于进程的最大打开文件描述符数,可以在代码里设置&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://stackoverflow.com/questions/17817204/how-to-set-ulimit-n-from-a-golang-program&#34;&gt;stackoverflow 答案&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;总结:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;所有进程打开的文件描述符数不能超过 /proc/sys/fs/file-max&lt;/li&gt;
+&lt;li&gt;单个进程打开的文件描述符数不能超过user limit中nofile的soft limit&lt;/li&gt;
+&lt;li&gt;nofile的soft limit不能超过其hard limit&lt;/li&gt;
+&lt;li&gt;nofile的hard limit不能超过/proc/sys/fs/nr_open&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&#34;客户端连接数量:b31d05767482ad91021c08ffa39b4980&#34;&gt;客户端连接数量&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;修改 &lt;code&gt;/etc/sysctl.conf&lt;/code&gt; ,执行 &lt;code&gt;/sbin/sysctl -p&lt;/code&gt; 立即生效:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;net.ipv4.ip_local_port_range = 1024 6553
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;在一台机器一个IP只能创建六万多个长连接,所以要么增加机器,网卡,或者用虚拟IP增加客户端连接数量,这个只是临时设置,重启失效.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ifconfig eth0:0 192.168.199.100 netmask 255.255.255.0 up
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&#34;关于连接数:b31d05767482ad91021c08ffa39b4980&#34;&gt;关于连接数&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;100W websocket连接,消耗16GB内存,gc在100-300ms;&lt;/li&gt;
+&lt;li&gt;平均1W个连接 &lt;a href=&#34;github.com/gorilla/websocket&#34;&gt;gorilla&lt;/a&gt; lib比&lt;a href=&#34;golang.org/x/net/websocket&#34;&gt;golang-websocket&lt;/a&gt;lib多26MB内存&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>nginx-rmtp 直播环境</title>
+      <link>http://ljy2010a.github.io/post/live-video/</link>
+      <pubDate>Sat, 05 Mar 2016 16:05:11 +0800</pubDate>
+      
+      <guid>http://ljy2010a.github.io/post/live-video/</guid>
+      <description>
+
+&lt;p&gt;工作涉及到直播服务,初步了解了各种方案,当前比较好用的还是nginx+nginx-rtmp-module&lt;/p&gt;
+
+&lt;h3 id=&#34;相关知识:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;相关知识&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Real_Time_Messaging_Protocol&#34;&gt;rtmp&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/HTTP_Live_Streaming&#34;&gt;hls 协议&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;docker&lt;/li&gt;
+&lt;li&gt;nginx&lt;/li&gt;
+&lt;li&gt;ffmpeg&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;流程说明:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;流程说明&lt;/h3&gt;
+
+&lt;ol&gt;
+&lt;li&gt;直播源(先用ffmpeg 代替)推流到服务器&lt;/li&gt;
+&lt;li&gt;服务接收流后,对流进行处理,转码(支持hls,需要切片)&lt;/li&gt;
+&lt;li&gt;客户端拉流(rtmp,hls 协议)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;使用docker的nginx-rmtp服务器:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;使用docker的nginx-rmtp服务器&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;docker pull voxxit/nginx-rtmp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --rm -it -p 80:80 -p 1935:1935 voxxit/nginx-rtmp /bin/bash
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;命令解释:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;命令解释:&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&amp;ndash; rm 运行完删除容器&lt;/li&gt;
+&lt;li&gt;-p 端口映射&lt;/li&gt;
+&lt;li&gt;-v 目录映射&lt;/li&gt;
+&lt;li&gt;-it 执行命令&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;容器介绍:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;容器介绍&lt;/h4&gt;
+
+&lt;p&gt;nginx 配置 /usr/local/nginx/conf/nginx.conf&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+worker_processes auto;
+daemon off;
+
+events {
+  worker_connections  1024;
+}
+
+rtmp_auto_push on;
+
+rtmp {
+  server {
+    listen 1935;
+
+    application live {
+      live on;
+
+      hls on;
+      hls_path /tmp/hls;
+    }
+  }
+}
+
+http {
+  server {
+    listen 80;
+
+    location /stats {
+      rtmp_stat all;
+      rtmp_stat_stylesheet stat.xsl;
+    }
+
+    location /stat.xsl {
+      root /usr/local/nginx/html;
+    }
+
+    location /hls {
+      types {
+        application/vnd.apple.mpegurl m3u8;
+        video/mp2t ts;
+      }
+
+      root /tmp;
+
+      add_header Cache-Control no-cache;
+      add_header &#39;Access-Control-Allow-Origin&#39; &#39;*&#39;;
+      add_header &#39;Access-Control-Allow-Credentials&#39; &#39;true&#39;;
+      add_header &#39;Access-Control-Allow-Methods&#39; &#39;OPTION, POST, GET&#39;;
+      add_header &#39;Access-Control-Allow-Headers&#39; &#39;X-Requested-With, Content-Type&#39;;
+    }
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h5 id=&#34;tips:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;Tips&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;建议把nginx相关配置,hls的临时目录连接到外部存储&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;使用ffmpeg推流:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;使用ffmpeg推流&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;avconv -re -i 1.mp4 -c:a copy -c:v copy -f flv rtmp://${SERVER}/live/s
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;播放视频流:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;播放视频流&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;pc 上可以使用vlc播放网络流&lt;/li&gt;
+&lt;li&gt;web 建议使用flash播放rmtp,稳定,延时短,可以使用 &lt;a href=&#34;https://github.com/videojs/video.js&#34;&gt;videojs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;移动端web 可以使用 &lt;a href=&#34;https://github.com/videojs/videojs-contrib-hls&#34;&gt;videojs-contrib-hls&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;参考网址:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;参考网址&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;hls介绍 &lt;a href=&#34;https://imququ.com/post/html5-live-player-1.html&#34;&gt;https://imququ.com/post/html5-live-player-1.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;视频协议对比 &lt;a href=&#34;http://m.blog.chinaunix.net/uid-26000296-id-4932822.html&#34;&gt;http://m.blog.chinaunix.net/uid-26000296-id-4932822.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;后续:14544fb3aae34d1a60c71691b6e65d96&#34;&gt;后续&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;应用服务于视频服务器的对接&lt;/li&gt;
+&lt;li&gt;视频服务的集群&lt;/li&gt;
+&lt;li&gt;vdn的研究&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
